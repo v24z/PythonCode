@@ -1,0 +1,94 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <title>Title</title>
+  <link rel="stylesheet" href="{% static 'plugins/bootstrap-3.4.1-dist/css/bootstrap.min.css' %}">
+  <style>
+    .navbar {
+      border-radius: 0;
+    }
+
+    .textarea {
+      height: 100px;
+    }
+  </style>
+  {% block css %}{% endblock %}
+</head>
+
+<body style="background-color: #e3e3e3">
+  <nav class="navbar navbar-default">
+    <div class="container">
+
+      <div class="navbar-header">
+        <button type="button" class="navbar-toggle collapsed" data-toggle="collapse"
+          data-target="#bs-example-navbar-collapse-1" aria-expanded="false">
+          <span class="sr-only">Toggle navigation</span>
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+        </button>
+        <a class="navbar-brand" href="#">选题管理</a>
+      </div>
+
+      <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
+        <ul class="nav navbar-nav">
+
+          {# <li class="dropdown">#}
+            {# <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" #} 
+            {#aria-expanded="false">功能整合 <span class="caret"></span></a>#}
+            {# <ul class="dropdown-menu">#}
+              {# <li><a href="/admin/applylist/">管理员</a></li>#}
+              {# <li><a href="/title/list/">教师</a></li>#}
+              {# <li><a href="/stu/titlelist/">学生</a></li>#}
+              {##}
+              {##}
+              {# </ul>#}
+            {# </li>#}
+
+          <li><a href="/title/list/">我的选题</a></li>
+          <li><a href="/title/review/">申请审核</a></li>
+          <li><a href="/title/tableshow/">数据统计</a></li>
+          <li><a href="/title/upload/">文件上传</a></li>
+          <li><a href="/title/uploadscore/">成绩上传</a></li>
+
+          <li><a href="/title/download/">开题报告下载</a></li>
+          <li><a href="/title/downloadarticletranslation/">外文翻译下载</a></li>
+          <li><a href="/title/downloadmediumcheck/">中期检查下载</a></li>
+          <li><a href="/title/downloadfinalpaper/">论文终稿下载</a></li>
+
+
+        </ul>
+
+        <ul class="nav navbar-nav navbar-right">
+
+          <li class="dropdown">
+            <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true"
+              aria-expanded="false">{{ request.session.info.name }} <span class="caret"></span></a>
+            <ul class="dropdown-menu">
+              <li><a href="/title/{{ request.session.info.id }}/myinformation/">我的信息</a></li>
+              <li><a href="/title/{{ request.session.info.id }}/changepassword/">修改密码</a></li>
+              <!-- <li><a href="#">Something else here</a></li> -->
+              <li role="separator" class="divider"></li>
+              <li><a href="/logout/">注销</a></li>
+            </ul>
+          </li>
+
+        </ul>
+      </div><!-- /.navbar-collapse -->
+    </div><!-- /.container-fluid -->
+  </nav>
+
+  <div>
+
+    {% block content %}{% endblock %}
+
+  </div>
+  <script src="{% static 'js/jquery.min.js' %}"></script>
+  <script src="{% static 'plugins/bootstrap-3.4.1-dist/js/bootstrap.min.js' %}"></script>
+  {% block js %}{% endblock %}
+</body>
+
+</html>

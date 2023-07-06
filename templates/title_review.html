@@ -1,0 +1,270 @@
+{% extends 'layout.html' %}
+{% block content %}
+
+
+
+<div class="container">
+  <div style="margin-bottom: 10px;">
+    {# <a href="/title/add/" class="btn btn-success">#}
+      {# <span class="glyphicon glyphicon-plus-sign" aria-hidden="true"></span>#}
+      {# 新建选题#}
+      {# </a>#}
+    {# <a href="/title/addmf/" class="btn btn-success">#}
+      {# <span class="glyphicon glyphicon-plus-sign" aria-hidden="true"></span>#}
+      {# 新建选题mf#}
+      {# </a>#}
+    <input id="btnAdd" type="button" value="新建选题" class="btn btn-primary">
+
+
+  </div>
+
+
+
+  <div class="panel panel-default">
+    <!-- Default panel contents -->
+    <div class="panel-heading">
+      <span class="glyphicon glyphicon-th-list" aria-hidden="true"></span>
+      审核列表
+    </div>
+
+    <!-- Table -->
+    <table class="table table-striped">
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>名称</th>
+          <th>学生</th>
+          <th>学号</th>
+          <th>号码</th>
+          <th>状态</th>
+          <th>操作</th>
+
+        </tr>
+      </thead>
+      <tbody>
+        {% for obj in title_list %}
+        <tr>
+          <th>{{ obj.id }}</th>
+          <th>{{ obj.titlename.title_name }}</th>
+          <th>{{ obj.stuname.name }}</th>
+          <th>{{ obj.stuname.id }}</th>
+          <th>{{ obj.stuname.tele }}</th>
+          <th>{{ obj.applystate }}</th>
+
+          <td>
+{#            <a href="/title/{{ obj.id }}/reviewapprove/" name="" class="btn btn-primary btn-xs">通过</a>#}
+            <input uid="{{ obj.id }}" stuid="{{ obj.stuname.id }}" class="btn btn-primary btn-xs btn-refuse"
+              type="button" value="同意">
+
+            <a href="/title/{{ obj.id }}/reviewnegative/" class="btn btn-danger btn-xs" name="">拒绝</a>
+
+
+          </td>
+          <td>{{ obj.state }}</td>
+
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  <ul class="pagination">
+    {{page_string }}
+    <li>
+      <form method="get" name="page" style="float: left;margin-left: -1px;">
+        <div class="input-group" style="position: relative;float: left;display: inline-block;width: 80px;">
+          <input type="text" name="page" class="form-control" placeholder="页码">
+          <button class="btn btn-default" type="submit">跳转</button>
+        </div>
+      </form>
+    </li>
+  </ul>
+
+  <!-- 新建选题模态框 -->
+  <div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
+    <div class="modal-dialog modal-lg" role="document">
+      <div class="modal-content">
+        <div class="modal-header">
+          <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span
+              aria-hidden="true">&times;</span></button>
+          <h4 class="modal-title" id="myModalLabel">新建选题</h4>
+        </div>
+        <div class="modal-body">
+          <form id="formAdd">
+            <div class="clearfix">
+              {% for field in form %}
+              <div class="col-xs-6">
+                <div class="form-group" style="position: relative;">
+                  <label>{{ field.label }}</label>
+                  {{ field }}
+                  <span class="error-msg" style="color: red; position: absolute;"></span>
+                </div>
+              </div>
+              {% endfor %}
+            </div>
+          </form>
+
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-default" data-dismiss="modal">关 闭</button>
+          <button id="btnSave" type="button" class="btn btn-primary">保 存</button>
+        </div>
+      </div>
+    </div>
+
+
+  </div>
+
+
+
+
+  {# 确认重置对话框#}
+  <div class="modal fade confirmApply" id="warnModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
+    <div class="modal-dialog" role="document">
+      <div class="modal-content">
+        <div class="modal-header">
+          <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span
+              aria-hidden="true">&times;</span></button>
+          <h4 class="modal-title" id="myModalLabel">提醒</h4>
+        </div>
+        <div class="modal-body">
+          学号为
+          <strong id="titleID"></strong>
+          的学生已有通过审核的选题，已帮您拒绝
+
+        </div>
+        <div class="modal-footer">
+          <button id="btnConfirmRefuse" type="button" class="btn btn-primary">确 认</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+
+
+
+
+
+
+</div>
+
+{% endblock %}
+{% block js %}
+<script type="text/javascript">
+  $(function () {
+    bindBtnAddEvent();
+    bindBtnSaveEvent();
+    binBtnRefuseEvent();
+    btnBtnConfirmRefuse();
+  })
+
+  function bindBtnAddEvent() {
+    $('#btnAdd').click(function () {
+      //将正在编辑的ID设为空
+      EDIT_ID = undefined;
+
+      // 清空对话框内容,否则会显示上次编辑的数据，变基处同样作此操作
+      $('#formAdd')[0].reset();
+
+      //设置对话框的标题
+      $('#myModalLabel').text('新建');
+      $(".error-msg").empty();
+      $('#myModal').modal('show');
+    })
+  }
+
+  function bindBtnSaveEvent() {
+    $('#btnSave').click(function () {
+
+      //清楚错误信息
+      $(".error-msg").empty();
+
+      //添加
+      doAdd();
+
+
+    })
+  }
+
+
+  function doAdd() {
+    //向后台发送请求
+    $.ajax({
+      url: "/title/add/",
+      type: "post",
+      data: $("#formAdd").serialize(),
+      dataType: "JSON",
+      success: function (res) {
+        if (res.status) {
+          //清空表单 $("#formAdd")是jQuery对象 -> $("#formAdd")[0] DOM对象
+          $("#formAdd")[0].reset();
+
+          //关闭对话框
+          $('#myModal').modal('hide')
+
+          //刷新页面
+          location.reload();
+
+        } else {
+          //错误信息显示在对话框
+          //name即字段名 errorList即错误内容
+          $.each(res.error, function (name, errorList) {
+            $("#id_" + name).next().text(errorList[0]);
+          })
+        }
+
+      }
+
+    })
+  }
+  var UID;
+
+  function binBtnRefuseEvent() {
+
+    $(".btn-refuse").click(function () {
+      UID = $(this).attr("uid");
+      var STUID = $(this).attr("stuid");
+      $.ajax({
+        url: "/title/reviewapprove/",
+        data: {
+          uid: UID,
+          stuid: STUID
+        },
+        dataType: "JSON",
+        success: function (res) {
+          if (res.status) {
+            location.reload();
+
+          } else {
+            $("#warnModal").modal("show");
+            $("#titleID").text(STUID);
+
+          }
+
+        }
+
+      })
+    })
+  }
+  function btnBtnConfirmRefuse() {
+    $("#btnConfirmRefuse").click(function () {
+      $.ajax({
+        url: "/title/approve/",
+        data: {
+          uid: UID
+        },
+        dataType: "JSON",
+        success: function (res) {
+          if (res.status) {
+            $("#warnModal").modal("hide");
+            UID = undefined;
+            location.reload();
+
+
+          }
+        }
+      })
+    })
+  }
+</script>
+
+{% endblock %}

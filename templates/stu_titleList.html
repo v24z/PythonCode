@@ -1,0 +1,262 @@
+{% extends 'stu_layout.html' %}
+{% block content %}
+<div class="container">
+
+  <div style="margin-top: 5px;">
+
+    {# 搜索框#}
+    <div style="float: right;width: 300px;">
+      <form method="get">
+        <div class="input-group">
+          <input name="q" type="text" class="form-control" placeholder="Search for..." value={{ search_data }}>
+          <span class="input-group-btn">
+            <button class="btn btn-default" type="submit">
+              <span class="glyphicon glyphicon-search" aria-hidden="true"></span>
+            </button>
+          </span>
+        </div><!-- /input-group -->
+      </form>
+    </div>
+
+
+  </div>
+
+
+
+  <div class="panel panel-default">
+    <!-- Default panel contents -->
+    <div class="panel-heading">
+      <span class="glyphicon glyphicon-th-list" aria-hidden="true"></span>
+      选题列表
+    </div>
+
+    <!-- Table -->
+    <table class="table table-striped">
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>名称</th>
+          <th>性质</th>
+          <th>建议专业</th>
+          <th>工作量</th>
+          <th>难度</th>
+          <th>课题来源</th>
+          <th>教师</th>
+          <th>操作</th>
+
+        </tr>
+      </thead>
+      <tbody>
+        {% for obj in title_list %}
+        <tr>
+          <th name="titleID">{{ obj.id }}</th>
+          <td>{{ obj.title_name }}</td>
+
+          <td>{{ obj.get_title_quality_display }}</td>
+          <td>{{ obj.fit_major }}</td>
+
+          <td>{{ obj.get_work_time_display }}</td>
+          <td>{{ obj.get_work_difficulty_display }}</td>
+          <td>{{ obj.get_title_source_display }}</td>
+          <td>{{ obj.teacher.name }}</td>
+
+          <td>
+{#            <a href="/stu/{{ obj.id }}/cheacktitle/" class="btn btn-primary btn-xs">查看详情</a>#}
+{#            <a href="/stu/{{ obj.id }}/titleapply/" class="btn btn-primary btn-xs">申请</a>#}
+
+            <input uid="{{ obj.id }}" type="button" class="btn btn-primary btn-xs btn-edit" value="详情">
+            <input uid="{{ obj.id }}" type="button" class="btn btn-primary btn-xs btn-apply-directly" value="申请">
+
+
+          </td>
+
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  <ul class="pagination">
+    {{page_string }}
+    <li>
+      <form method="get" name="page" style="float: left;margin-left: -1px;">
+        <div class="input-group" style="position: relative;float: left;display: inline-block;width: 80px;">
+          <input type="text" name="page" class="form-control" placeholder="页码">
+          <button class="btn btn-default" type="submit">跳转</button>
+        </div>
+      </form>
+    </li>
+  <ul />
+
+
+    <!-- 新建选题模态框 -->
+    <div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
+      <div class="modal-dialog" role="document">
+        <div class="modal-content">
+          <div class="modal-header">
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span
+                aria-hidden="true">&times;</span></button>
+            <h4 class="modal-title" id="myModalLabel">选题详情</h4>
+          </div>
+          <div class="modal-body">
+            <form id="formAdd">
+              <div class="clearfix">
+                {% for field in form %}
+                <div class="col-xs-12">
+                  <div class="form-group" style="position: relative;">
+                    <label>{{ field.label }}</label>
+                    {{ field }}
+                    <span class="error-msg" style="color: red; position: absolute;"></span>
+                  </div>
+                </div>
+                {% endfor %}
+              </div>
+            </form>
+
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-default" data-dismiss="modal">关 闭</button>
+            <button id="btnApply" type="button" class="btn btn-primary">申 请</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+
+    {#    确认重置对话框#}
+    <div class="modal fade confirmApply" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
+      <div class="modal-dialog" role="document">
+        <div class="modal-content">
+          <div class="modal-header">
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span
+                aria-hidden="true">&times;</span></button>
+            <h4 class="modal-title" id="myModalLabel">请求确认</h4>
+          </div>
+          <div class="modal-body">
+            确认直接申请名为
+            <strong id="titleID"></strong>
+            的选题吗？
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-default" data-dismiss="modal">取 消</button>
+            <button id="btnConfirmApplyDirectly" type="button" class="btn btn-primary">确 认</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+
+</div>
+
+{% endblock %}
+
+{% block js %}
+<script type="text/javascript">
+  var TITLE_ID;
+  var APPLY_DIRECTLY;
+  $(function () {
+    bindBtnEditEvent();
+    bindBtnApplyEvent();
+    bindBtnApplyDirectlyEvent();
+    bindBtnApplyDirectlyConfirmEvent();
+
+    
+  })
+
+  function bindBtnEditEvent() {
+    $(".btn-edit").click(function () {
+
+      // 清空对话框内容,否则会显示上次编辑的数据，变基处同样作此操作
+      $('#formAdd')[0].reset();
+      //清楚错误信息
+      $(".error-msg").empty();
+
+      //点击编辑，但后台反馈存在数据才显示对话框
+      var uid = $(this).attr("uid");
+      TITLE_ID = uid;
+
+      //发送ajax请求获取当前行相关数据
+      $.ajax({
+        url: "/admin/titledetail/",
+        type: "get",
+        data: {
+          uid: uid
+        },
+        dataType: "JSON",
+        success: function (res) {
+          if (res.status) {
+            console.log(res);
+            //将数据赋值到对话框中的标签中
+            $.each(res.data, function (name, value) {
+              $("#id_" + name).val(value);
+            })
+
+            $('#myModal').modal('show');
+
+          } else {
+            alert(res.error);
+          }
+        }
+
+      });
+    });
+  }
+  
+  function bindBtnApplyEvent(){
+    $("#btnApply").click(function(){
+      $.ajax({
+        url:"/stu/applytitle/",
+        data:{
+          uid:TITLE_ID
+        },
+        dataType:"JSON",
+        success:function(res){
+          if(res.status){
+            alert("申请成功");
+            TITLE_ID=0;
+            $('#myModal').modal('hide');
+          }else{
+            alert(res.error);
+            $('#myModal').modal('hide');
+          }
+        }
+
+      })
+    })
+  }
+
+  function bindBtnApplyDirectlyEvent(){
+    $(".btn-apply-directly").click(function(){
+      APPLY_DIRECTLY=$(this).attr("uid");
+      $(".confirmApply").modal("show");
+      $("#titleID").text(APPLY_DIRECTLY);
+
+    })
+  }
+
+  function bindBtnApplyDirectlyConfirmEvent(){
+    $("#btnConfirmApplyDirectly").click(function(){
+      $.ajax({
+        url:"/stu/applytitle/",
+        data:{
+          uid:APPLY_DIRECTLY
+        },
+        dataType:"JSON",
+        success:function(res){
+          if(res.status){
+            $(".confirmApply").modal("hide");
+            alert("申请成功");
+          }else{
+            $(".confirmApply").modal("hide");
+            alert(res.error);
+          }
+        }
+      })
+    })
+
+  }
+
+
+</script>
+
+{% endblock %}
