@@ -1,0 +1,170 @@
+{% extends 'admin_layout.html' %}
+{% load static %}
+{% block content %}
+<div class="container">
+
+    <div class="panel panel-default">
+        <!-- Default panel contents -->
+        <div class="panel-heading">
+            <span class="glyphicon glyphicon-th-list" aria-hidden="true"></span>
+            上传时间管理列表
+        </div>
+
+
+        <table class="table table-striped">
+            <thead>
+                <tr>
+                    <th>名称</th>
+                    <th>开始时间</th>
+                    <th>结束时间</th>
+
+                    <th>操作</th>
+
+                </tr>
+            </thead>
+            <tbody>
+                {% for obj in title_list %}
+                <tr>
+                    <th>{{ obj.name }}</th>
+                    <td>{{ obj.start_time }}</td>
+                    <td>{{ obj.end_time }}</td>
+
+                    <td>
+                        <input uid="{{ obj.id }}" type="button" class="btn btn-primary btn-xs btn-edit" value="设置">
+                    </td>
+
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+
+
+    </div>
+
+    <!-- 新建选题模态框 -->
+    <div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span
+                            aria-hidden="true">&times;</span></button>
+                    <h4 class="modal-title" id="myModalLabel">设置时间</h4>
+                </div>
+                <div class="modal-body">
+                    <form id="formAdd">
+                        <div class="clearfix">
+                            {% for field in form %}
+                            <div class="col-xs-12">
+                                <div class="form-group" style="position: relative;">
+                                    <label>{{ field.label }}</label>
+                                    {{ field }}
+                                    <span class="error-msg" style="color: red; position: absolute;"></span>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </form>
+
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-default" data-dismiss="modal">关 闭</button>
+                    <button id="btnSave" type="button" class="btn btn-primary">保 存</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+
+</div>
+
+{% endblock %}
+
+{% block js %}
+<script src="{% static 'plugins/bootstrap-datepicker/js/bootstrap-datepicker.js' %}"></script>
+<script src="{% static 'plugins/bootstrap-datepicker/locales/bootstrap-datepicker.zh-CN.min.js' %}"></script>
+<script type="text/javascript">
+    var EDIT_ID;
+    $(function () {
+        $('#id_start_time').datepicker({
+            format: 'yyyy-mm-dd',
+            startDate: '0',
+            language: "zh-CN",
+            autoclose: true
+        });
+        $('#id_end_time').datepicker({
+            format: 'yyyy-mm-dd',
+            startDate: '0',
+            language: "zh-CN",
+            autoclose: true
+        });
+        bindBtnEditEvent();
+        bindBtnSaveEvent();
+
+    })
+
+    function bindBtnEditEvent() {
+        $(".btn-edit").click(function () {
+            // 清空对话框内容,否则会显示上次编辑的数据，变基处同样作此操作
+            $('#formAdd')[0].reset();
+            //清楚错误信息
+            $(".error-msg").empty();
+
+            var uid = $(this).attr("uid");
+            EDIT_ID = uid;
+            $.ajax({
+                url: "/admin/setuploadtimedetail/",
+                type: "get",
+                data: {
+                    uid: uid
+                },
+                dataType: "JSON",
+                success: function (res) {
+                    if (res.status) {
+
+                        $.each(res.data, function (name, value) {
+                            $("#id_" + name).val(value);
+                        })
+                        $('#myModal').modal('show');
+
+                    } else {
+                        alert(res.error);
+                    }
+                }
+            })
+        });
+    }
+
+    function bindBtnSaveEvent() {
+        $("#btnSave").click(function () {
+            $.ajax({
+                url: "/admin/setuploadtimesave/"+"?uid="+EDIT_ID,
+                type: "post",
+                data: $("#formAdd").serialize(),
+                dataType: "JSON",
+                success: function (res) {
+                    if (res.status) {
+                        //清空表单 $("#formAdd")是jQuery对象 -> $("#formAdd")[0] DOM对象
+                        $("#formAdd")[0].reset();
+
+                        //关闭对话框
+                        $('#myModal').modal('hide')
+
+                        //刷新页面
+                        location.reload();
+                    } else {
+                        //错误信息显示在对话框
+                        //name即字段名 errorList即错误内容
+                        $.each(res.error, function (name, errorList) {
+                            $("#id_" + name).next().text(errorList[0]);
+                        })
+
+                    }
+                }
+            })
+        })
+    }
+
+
+</script>
+{% endblock %}

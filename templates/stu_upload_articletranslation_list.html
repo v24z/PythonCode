@@ -1,0 +1,42 @@
+{% extends 'stu_layout.html' %}
+{% block content %}
+<div class="container">
+    <div class="panel panel-default">
+        <div class="panel-heading">
+            <span class="glyphicon glyphicon-th-list" aria-hidden="true"></span>
+            外文翻译上传列表
+        </div>
+
+
+        <!-- 表单 -->
+        <table class="table table-striped">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th></th>
+                    <th>名称</th>
+                    <th>上传</th>
+
+                </tr>
+            </thead>
+            <tbody>
+                {% for obj in title_list %}
+                <tr>
+                    <th>{{ obj.id }}</th>
+                    <td> </td>
+                    <td>{{ obj.titlename.title_name }}</td>
+
+                    <td>
+                        <a href="/stu/{{ obj.id }}/uploadarticletranslation" class="btn btn-primary btn-xs">上传</a>
+
+                    </td>
+
+                </tr>
+                {% endfor %}
+            </tbody>
+
+
+    </div>
+</div>
+
+{% endblock %}

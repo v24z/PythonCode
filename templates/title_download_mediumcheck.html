@@ -1,0 +1,60 @@
+{% extends 'layout.html' %}
+{% block content %}
+<div class="container">
+    <div class="panel panel-default">
+        <div class="panel-heading">
+            <h3 class="panel-title">中期检查文件下载</h3>
+        </div>
+
+
+        <!-- 表单 -->
+        <table class="table table-striped">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th></th>
+                    <th>选题名称</th>
+                    <th>学生id</th>
+                    <th>学生姓名</th>
+                    <th>文件</th>
+
+                </tr>
+            </thead>
+            <tbody>
+                {% for obj in title_list %}
+                <tr>
+                    <th>{{ obj.id }}</th>
+                    <td> </td>
+                    <td>{{ obj.titlename.title_name }}</td>
+                    <td>{{ obj.stuname.id }}</td>
+                    <td> {{ obj.stuname.name }}</td>
+
+
+                    <td>
+                        {% if obj.mediumcheck %}
+                        <a href="{{ obj.mediumcheck.url }}" class="btn btn-primary btn-xs">下载</a>
+                        {% else %}
+                        文件不存在
+                        {% endif %}
+
+                    </td>
+
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    <ul class="pagination">
+        {{page_string }}
+        <li>
+            <form method="get" name="page" style="float: left;margin-left: -1px;">
+                <div class="input-group" style="position: relative;float: left;display: inline-block;width: 80px;">
+                    <input type="text" name="page" class="form-control" placeholder="页码">
+                    <button class="btn btn-default" type="submit">跳转</button>
+                </div>
+            </form>
+        </li>
+    </ul>
+</div>
+
+{% endblock %}
